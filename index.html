@@ -1,0 +1,2490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Smart House — Control Panel</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+    :root {
+      --bg: #0F1720;
+      --panel: #16212C;
+      --panel-raised: #1C2A38;
+      --line: #2A3B4D;
+      --ink: #E7EBEF;
+      --muted: #7E90A3;
+
+      --amber: #E8A33D;
+      --amber-dim: #4A3A1E;
+
+      --teal: #4FB3BF;
+      --teal-dim: #1C3A3D;
+
+      --red: #D9694F;
+
+      --font-display: "Space Grotesk", Arial, sans-serif;
+      --font-mono: "IBM Plex Mono", "Courier New", monospace;
+    }
+
+    :root[data-theme="light"] {
+      --bg: #EAE5D8;
+      --panel: #F6F2E6;
+      --panel-raised: #FBF8F0;
+      --line: #C9BFA6;
+      --ink: #1C2430;
+      --muted: #6B6455;
+
+      --amber: #C97A2B;
+      --amber-dim: #EBD9BC;
+
+      --teal: #1F7A82;
+      --teal-dim: #D4E7E6;
+
+      --red: #B84A34;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0F1720;
+        --panel: #16212C;
+        --panel-raised: #1C2A38;
+        --line: #2A3B4D;
+        --ink: #E7EBEF;
+        --muted: #7E90A3;
+
+        --amber: #E8A33D;
+        --amber-dim: #4A3A1E;
+
+        --teal: #4FB3BF;
+        --teal-dim: #1C3A3D;
+
+        --red: #D9694F;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #0F1720;
+      --panel: #16212C;
+      --panel-raised: #1C2A38;
+      --line: #2A3B4D;
+      --ink: #E7EBEF;
+      --muted: #7E90A3;
+
+      --amber: #E8A33D;
+      --amber-dim: #4A3A1E;
+
+      --teal: #4FB3BF;
+      --teal-dim: #1C3A3D;
+
+      --red: #D9694F;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-display);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 28px 20px 60px;
+    }
+
+    button,
+    .switch {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    /* ============================================================
+       HEADER
+       ============================================================ */
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 16px;
+
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 18px;
+      margin-bottom: 28px;
+    }
+
+    .title-block h1 {
+      font-size: clamp(26px, 4vw, 34px);
+      margin: 0 0 4px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .title-block p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+
+      background: var(--panel);
+      border: 1px solid var(--line);
+
+      padding: 5px 10px 5px 8px;
+      border-radius: 100px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+
+      background: var(--teal);
+      box-shadow: 0 0 6px var(--teal);
+    }
+
+    .status-dot.warn {
+      background: var(--red);
+      box-shadow: 0 0 6px var(--red);
+    }
+
+    /* ============================================================
+       FLOOR PLAN
+       ============================================================ */
+
+    .floorplan-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+
+      padding: 24px;
+      margin-bottom: 22px;
+    }
+
+    .floorplan-card h2 {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+
+      margin: 0 0 16px;
+    }
+
+    svg.plan {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .room-fill {
+      fill: transparent;
+      transition: fill 0.5s ease;
+    }
+
+    .room-fill.lit {
+      fill: var(--amber-dim);
+    }
+
+    .room-outline {
+      fill: none;
+      stroke: var(--line);
+      stroke-width: 1.5;
+    }
+
+    .room-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      fill: var(--muted);
+    }
+
+    .room-reading {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      fill: var(--muted);
+    }
+
+    .bulb {
+      transition:
+        fill 0.4s ease,
+        opacity 0.4s ease;
+    }
+
+    .bulb.on {
+      fill: var(--amber);
+      opacity: 1;
+      filter: drop-shadow(0 0 4px var(--amber));
+    }
+
+    .bulb.off {
+      fill: var(--line);
+      opacity: 0.7;
+    }
+
+    .motion-ring {
+      fill: none;
+      stroke: var(--teal);
+      stroke-width: 1.5;
+      opacity: 0;
+    }
+
+    .motion-ring.pulse {
+      animation: pulse-ring 1.4s ease-out;
+    }
+
+    @keyframes pulse-ring {
+      0% {
+        opacity: 0.9;
+        r: 4;
+      }
+
+      100% {
+        opacity: 0;
+        r: 26;
+      }
+    }
+
+    .door-leaf {
+      transform-origin: 0 0;
+      transition: transform 0.6s cubic-bezier(.4, 0, .2, 1);
+
+      stroke: var(--muted);
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .door-leaf.open {
+      transform: rotate(-90deg);
+    }
+
+    .door-arc {
+      fill: none;
+      stroke: var(--muted);
+      stroke-width: 1;
+      stroke-dasharray: 3 3;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .door-arc.open {
+      opacity: 0.65;
+    }
+
+    .clothesline-arm {
+      transform-origin: 0 0;
+      transition: transform 0.8s cubic-bezier(.4, 0, .2, 1);
+      stroke: var(--teal);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .clothesline-arm.inside {
+      transform: rotate(-72deg);
+    }
+
+    .clothesline-rope {
+      stroke: var(--muted);
+      stroke-width: 1.5;
+      stroke-dasharray: 4 3;
+      transition: opacity 0.5s ease;
+    }
+
+    .clothesline-rope.inside {
+      opacity: 0.25;
+    }
+
+    /* ============================================================
+       CONTROL GRID
+       ============================================================ */
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1.3fr 1fr;
+      gap: 14px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+
+      padding: 18px;
+
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .panel-label {
+      font-size: 12px;
+      color: var(--muted);
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* ============================================================
+       LIGHTING
+       ============================================================ */
+
+    .light-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      padding: 8px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .light-row:first-of-type {
+      border-top: none;
+    }
+
+    .light-row span.name {
+      font-size: 14px;
+    }
+
+    .switch {
+      position: relative;
+
+      width: 42px;
+      height: 24px;
+
+      background: var(--panel-raised);
+      border: 1px solid var(--line);
+      border-radius: 100px;
+
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .switch::after {
+      content: "";
+
+      position: absolute;
+      top: 2px;
+      left: 2px;
+
+      width: 18px;
+      height: 18px;
+
+      border-radius: 50%;
+      background: var(--muted);
+
+      transition:
+        transform 0.25s ease,
+        background 0.25s ease;
+    }
+
+    .switch.on {
+      border-color: var(--amber);
+    }
+
+    .switch.on::after {
+      transform: translateX(18px);
+      background: var(--amber);
+    }
+
+    .switch:focus-visible {
+      outline: 2px solid var(--teal);
+      outline-offset: 2px;
+    }
+
+    /* ============================================================
+       BUTTONS / GATE
+       ============================================================ */
+
+    .gate-status {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      font-weight: 500;
+    }
+
+    .gate-status.closed {
+      color: var(--muted);
+    }
+
+    .gate-status.open {
+      color: var(--amber);
+    }
+
+    .btn {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+
+      padding: 10px 14px;
+
+      border-radius: 4px;
+      border: 1px solid var(--line);
+
+      background: var(--panel-raised);
+      color: var(--ink);
+
+      cursor: pointer;
+
+      transition:
+        border-color 0.2s ease,
+        background 0.2s ease;
+    }
+
+    .btn:hover {
+      border-color: var(--teal);
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--teal);
+      outline-offset: 2px;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn.alarm-active {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    /* ============================================================
+       ENVIRONMENT
+       ============================================================ */
+
+    .env-readouts {
+      display: flex;
+      gap: 24px;
+    }
+
+    .env-readout .num {
+      font-family: var(--font-mono);
+      font-size: 30px;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .env-readout .unit {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .env-readout .cap {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .cap {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .light-level-bar {
+      height: 5px;
+
+      background: var(--panel-raised);
+      border-radius: 100px;
+
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .light-level-fill {
+      height: 100%;
+
+      background: var(--amber);
+
+      transition: width 0.6s ease;
+    }
+
+    /* ============================================================
+       SECURITY
+       ============================================================ */
+
+    .motion-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      font-family: var(--font-mono);
+      font-size: 14px;
+    }
+
+    .motion-status .dot {
+      width: 8px;
+      height: 8px;
+
+      border-radius: 50%;
+      background: var(--line);
+
+      transition:
+        background 0.3s ease,
+        box-shadow 0.3s ease;
+
+      flex-shrink: 0;
+    }
+
+    .motion-status.active .dot {
+      background: var(--teal);
+      box-shadow: 0 0 6px var(--teal);
+    }
+
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+
+    footer {
+      margin-top: 30px;
+
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+    }
+
+    footer a {
+      color: var(--muted);
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+
+    @media (max-width: 900px) {
+      .controls {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      body {
+        padding: 20px 12px 40px;
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .floorplan-card {
+        padding: 16px;
+      }
+
+      .env-readouts {
+        gap: 18px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .door-leaf,
+      .light-level-fill,
+      .room-fill,
+      .switch::after,
+      .bulb {
+        transition: none;
+      }
+
+      .motion-ring.pulse {
+        animation: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="wrap">
+
+    <!-- ==========================================================
+         HEADER
+         ========================================================== -->
+
+    <header>
+      <div class="title-block">
+        <h1>Smart House</h1>
+        <p>Control panel — NodeMCU ESP8266 prototype</p>
+      </div>
+
+      <div class="status-row">
+
+        <div class="status-pill">
+          <span class="status-dot" id="dot-browser"></span>
+          This page
+        </div>
+
+        <div class="status-pill">
+          <span class="status-dot warn" id="dot-mqtt"></span>
+          MQTT
+        </div>
+
+        <div class="status-pill">
+          <span class="status-dot warn" id="dot-firebase"></span>
+          Firebase
+        </div>
+
+      </div>
+    </header>
+
+
+    <!-- ==========================================================
+         FLOOR PLAN
+         ========================================================== -->
+
+    <div class="floorplan-card">
+
+      <h2>Floor plan</h2>
+
+      <svg
+        class="plan"
+        viewBox="0 0 760 320"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-label="Smart house floor plan"
+      >
+
+        <!-- Living Room -->
+        <rect
+          class="room-fill"
+          id="fill-living"
+          x="20"
+          y="20"
+          width="330"
+          height="160"
+        />
+
+        <rect
+          class="room-outline"
+          x="20"
+          y="20"
+          width="330"
+          height="160"
+        />
+
+        <text class="room-label" x="34" y="42">
+          LIVING ROOM
+        </text>
+
+        <text
+          class="room-reading"
+          id="read-living"
+          x="34"
+          y="164"
+        >
+          DHT · — / —
+        </text>
+
+        <circle
+          class="bulb off"
+          id="bulb-living"
+          cx="330"
+          cy="40"
+          r="6"
+        />
+
+
+        <!-- Bedroom -->
+
+        <rect
+          class="room-fill"
+          id="fill-bedroom"
+          x="370"
+          y="20"
+          width="330"
+          height="160"
+        />
+
+        <rect
+          class="room-outline"
+          x="370"
+          y="20"
+          width="330"
+          height="160"
+        />
+
+        <text class="room-label" x="384" y="42">
+          BEDROOM
+        </text>
+
+        <text
+          class="room-reading"
+          id="read-bedroom"
+          x="384"
+          y="164"
+        >
+          —
+        </text>
+
+        <circle
+          class="bulb off"
+          id="bulb-bedroom"
+          cx="680"
+          cy="40"
+          r="6"
+        />
+
+
+        <!-- Entrance -->
+
+        <rect
+          class="room-outline"
+          x="20"
+          y="200"
+          width="220"
+          height="100"
+        />
+
+        <text class="room-label" x="34" y="222">
+          ENTRANCE
+        </text>
+
+        <text
+          class="room-reading"
+          id="read-entrance"
+          x="34"
+          y="286"
+        >
+          PIR · clear
+        </text>
+
+
+        <!-- Door -->
+
+        <g transform="translate(180,284)">
+          <line
+            class="door-leaf"
+            id="doorLeaf"
+            x1="0"
+            y1="0"
+            x2="45"
+            y2="0"
+          />
+          <path
+            class="door-arc"
+            id="doorArc"
+            d="M 45 0 A 45 45 0 0 0 0 -45"
+          />
+        </g>
+
+
+        <!-- Motion indicator -->
+
+        <circle
+          class="motion-ring"
+          id="ring-entrance"
+          cx="90"
+          cy="250"
+          r="4"
+        />
+
+
+        <!-- Control Area -->
+
+        <rect
+          class="room-outline"
+          x="260"
+          y="200"
+          width="250"
+          height="100"
+        />
+
+        <text class="room-label" x="274" y="222">
+          CONTROL AREA
+        </text>
+
+        <text class="room-reading" x="274" y="246">
+          NodeMCU + relay
+        </text>
+
+        <text class="room-reading" x="274" y="262">
+          breadboard
+        </text>
+
+
+        <!-- Veranda / Outside Area -->
+
+        <rect
+          class="room-outline"
+          x="530"
+          y="200"
+          width="170"
+          height="100"
+        />
+
+        <text class="room-label" x="540" y="222">
+          VERANDA
+        </text>
+
+        
+
+      </svg>
+
+    </div>
+
+
+    <!-- ==========================================================
+         CONTROLS
+         ========================================================== -->
+
+    <div class="controls">
+
+
+      <!-- ========================================================
+           LIGHTING
+           ======================================================== -->
+
+      <div class="panel">
+
+        <div class="panel-label">
+          <span>Lighting</span>
+        </div>
+
+        <div class="light-row">
+
+          <span class="name">
+            Living room
+          </span>
+
+          <div
+            class="switch"
+            id="sw-living"
+            role="switch"
+            aria-checked="false"
+            aria-label="Living room light"
+            tabindex="0"
+          ></div>
+
+        </div>
+
+        <div class="light-row">
+
+          <span class="name">
+            Bedroom
+          </span>
+
+          <div
+            class="switch"
+            id="sw-bedroom"
+            role="switch"
+            aria-checked="false"
+            aria-label="Bedroom light"
+            tabindex="0"
+          ></div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ========================================================
+           GATE
+           ======================================================== -->
+
+      <div class="panel">
+
+        <div class="panel-label">
+          <span>Entrance gate</span>
+        </div>
+
+        <div
+          class="gate-status closed"
+          id="gateStatus"
+        >
+          CLOSED
+        </div>
+
+        <button
+          class="btn"
+          id="gateBtn"
+          type="button"
+        >
+          Open gate
+        </button>
+
+      </div>
+
+
+      <!-- ========================================================
+           ENVIRONMENT
+           ======================================================== -->
+
+      <div class="panel">
+
+        <div class="panel-label">
+          <span>Environment</span>
+        </div>
+
+        <div class="env-readouts">
+
+          <div class="env-readout">
+
+            <div class="num">
+              <span id="tempVal">—</span>
+              <span class="unit">°C</span>
+            </div>
+
+            <div class="cap">
+              Bedroom temp
+            </div>
+
+          </div>
+
+          <div class="env-readout">
+
+            <div class="num">
+              <span id="humVal">—</span>
+              <span class="unit">%</span>
+            </div>
+
+            <div class="cap">
+              Humidity
+            </div>
+
+          </div>
+
+        </div>
+
+        <div>
+
+          <div class="cap">
+            Outside light level —
+            <span id="ldrVal">—</span>
+          </div>
+
+          <div class="light-level-bar">
+            <div
+              class="light-level-fill"
+              id="ldrBar"
+              style="width: 0%"
+            ></div>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ========================================================
+           SECURITY
+           ======================================================== -->
+
+      <div class="panel">
+
+        <div class="panel-label">
+          <span>Security</span>
+        </div>
+
+        <div
+          class="motion-status"
+          id="motionStatus"
+        >
+          <span class="dot"></span>
+          <span id="motionText">No motion</span>
+        </div>
+
+        <button
+          class="btn"
+          id="buzzerBtn"
+          type="button"
+        >
+          Test buzzer
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- ==========================================================
+         FOOTER
+         ========================================================== -->
+
+    <footer>
+
+      <span id="footerNote">
+        Connecting to MQTT…
+      </span>
+
+      <span>
+        Blueprint UI · v0.2
+      </span>
+
+    </footer>
+
+  </div>
+
+
+  <!-- ============================================================
+       CONFIGURATION
+       ============================================================ -->
+
+  <script>
+    /*
+     * ============================================================
+     * MQTT CONFIGURATION
+     * ============================================================
+     *
+     * IMPORTANT:
+     * Credentials in browser JavaScript are visible to users.
+     * This is acceptable for a classroom prototype but NOT for
+     * production security.
+     */
+
+    window.MQTT_CONFIG = {
+
+      url: "wss://6ccecdc3f8c0410bb616be6f868c657d.s1.eu.hivemq.cloud:8884/mqtt",
+      username: "group3",
+      password: "group3**",
+
+      topics: {
+
+        /* Sensor data */
+        temperature: "SmartHouse/sensors/temperature",
+        humidity: "SmartHouse/sensors/humidity",
+        light1: "SmartHouse/sensors/light1",
+        light2: "SmartHouse/sensors/light2",
+        motion: "SmartHouse/sensors/motion",
+        rain: "SmartHouse/sensors/rain",
+
+        /* Device status */
+        led1Status: "SmartHouse/devices/led1",
+        led2Status: "SmartHouse/devices/led2",
+        doorStatus: "SmartHouse/devices/door",
+        /* Servo 2 clothesline status */
+        rainProtectionStatus:
+          "SmartHouse/devices/rainProtection",
+        modeStatus: "SmartHouse/devices/mode",
+
+        /* Commands */
+        modeCommand: "SmartHouse/commands/mode",
+        led1Command: "SmartHouse/commands/led1",
+        led2Command: "SmartHouse/commands/led2",
+        doorCommand: "SmartHouse/commands/door",
+        /* Servo 2 clothesline command */
+        rainProtectionCommand:
+          "SmartHouse/commands/rainProtection",
+        buzzerCommand:
+          "SmartHouse/commands/buzzer"
+      }
+    };
+
+
+    /*
+     * ============================================================
+     * FIREBASE CONFIGURATION
+     * ============================================================
+     *
+     * Firebase is OPTIONAL.
+     *
+     * Leave enabled: false if you are using MQTT only.
+     *
+     * If you want Firebase, replace the values below with the
+     * Firebase configuration from your Firebase project.
+     */
+
+    window.FIREBASE_CONFIG = {
+      enabled: false,
+
+      apiKey: "",
+      authDomain: "",
+      databaseURL: "",
+      projectId: "",
+      storageBucket: "",
+      messagingSenderId: "",
+      appId: ""
+    };
+  </script>
+
+
+  <!-- ============================================================
+       MQTT.JS
+       ============================================================ -->
+
+  <script src="https://cdn.jsdelivr.net/npm/mqtt@5/dist/mqtt.min.js"></script>
+
+
+  <!-- ============================================================
+       MAIN APPLICATION
+       ============================================================ -->
+
+  <script>
+    (function () {
+
+      "use strict";
+
+
+      /* ==========================================================
+         STATE
+         ========================================================== */
+
+      var state = {
+
+        living: null,
+        bedroom: null,
+
+        gateOpen: false,
+
+        temp: null,
+        hum: null,
+        ldr: null,
+
+        motion: false,
+
+        rain: null,
+        clotheslineInside: null
+
+      };
+
+
+      /* ==========================================================
+         DOM REFERENCES
+         ========================================================== */
+
+      var el = {
+
+        swLiving:
+          document.getElementById("sw-living"),
+
+        swBedroom:
+          document.getElementById("sw-bedroom"),
+
+        bulbLiving:
+          document.getElementById("bulb-living"),
+
+        bulbBedroom:
+          document.getElementById("bulb-bedroom"),
+
+        fillLiving:
+          document.getElementById("fill-living"),
+
+        fillBedroom:
+          document.getElementById("fill-bedroom"),
+
+        readLiving:
+          document.getElementById("read-living"),
+
+        readBedroom:
+          document.getElementById("read-bedroom"),
+
+        readEntrance:
+          document.getElementById("read-entrance"),
+
+        readOutside:
+          document.getElementById("read-outside"),
+
+        gateBtn:
+          document.getElementById("gateBtn"),
+
+        gateStatus:
+          document.getElementById("gateStatus"),
+
+        doorLeaf:
+          document.getElementById("doorLeaf"),
+
+        doorArc:
+          document.getElementById("doorArc"),
+
+        tempVal:
+          document.getElementById("tempVal"),
+
+        humVal:
+          document.getElementById("humVal"),
+
+        ldrVal:
+          document.getElementById("ldrVal"),
+
+        ldrBar:
+          document.getElementById("ldrBar"),
+
+        motionStatus:
+          document.getElementById("motionStatus"),
+
+        motionText:
+          document.getElementById("motionText"),
+
+        ring:
+          document.getElementById("ring-entrance"),
+
+        buzzerBtn:
+          document.getElementById("buzzerBtn"),
+
+        dotBrowser:
+          document.getElementById("dot-browser"),
+
+        dotMqtt:
+          document.getElementById("dot-mqtt"),
+
+        dotFirebase:
+          document.getElementById("dot-firebase"),
+
+        footerNote:
+          document.getElementById("footerNote")
+      };
+
+
+      var mqttClient = null;
+
+
+      /* ==========================================================
+         BROWSER STATUS
+         ========================================================== */
+
+      function updateBrowserStatus() {
+
+        el.dotBrowser.classList.toggle(
+          "warn",
+          !navigator.onLine
+        );
+
+      }
+
+      updateBrowserStatus();
+
+      window.addEventListener(
+        "online",
+        updateBrowserStatus
+      );
+
+      window.addEventListener(
+        "offline",
+        updateBrowserStatus
+      );
+
+
+      /* ==========================================================
+         MQTT CONNECTION CHECK
+         ========================================================== */
+
+      function isMqttConnected() {
+
+        return (
+          mqttClient &&
+          mqttClient.connected
+        );
+
+      }
+
+
+      /* ==========================================================
+         MQTT COMMAND HELPERS
+         ========================================================== */
+
+      function publishCommand(topic, payload) {
+
+        if (!isMqttConnected()) {
+
+          alert(
+            "MQTT is not connected.\n\n" +
+            "Please check the broker connection."
+          );
+
+          return false;
+        }
+
+        mqttClient.publish(
+          topic,
+          payload,
+          {
+            qos: 0,
+            retain: false
+          }
+        );
+
+        console.log(
+          "[MQTT COMMAND]",
+          topic,
+          "=",
+          payload
+        );
+
+        return true;
+      }
+
+
+      /* ==========================================================
+         LIGHT CONTROL
+         ========================================================== */
+
+      function toggleLight(room) {
+
+        if (!isMqttConnected()) {
+
+          alert("MQTT is not connected.");
+
+          return;
+        }
+
+        var current = state[room];
+
+        /*
+         * If the device hasn't reported its current state yet,
+         * don't guess.
+         */
+        if (current === null) {
+
+          alert(
+            "The current light status is not available yet."
+          );
+
+          return;
+        }
+
+        var next = !current;
+
+        if (room === "living") {
+
+          publishCommand(
+            window.MQTT_CONFIG.topics.led1Command,
+            next ? "ON" : "OFF"
+          );
+
+        }
+
+        else if (room === "bedroom") {
+
+          publishCommand(
+            window.MQTT_CONFIG.topics.led2Command,
+            next ? "ON" : "OFF"
+          );
+
+        }
+
+      }
+
+
+      /* ==========================================================
+         SWITCH EVENTS
+         ========================================================== */
+
+      function setupSwitch(element, room) {
+
+        element.addEventListener(
+          "click",
+          function () {
+            toggleLight(room);
+          }
+        );
+
+        element.addEventListener(
+          "keydown",
+          function (event) {
+
+            if (
+              event.key === "Enter" ||
+              event.key === " "
+            ) {
+
+              event.preventDefault();
+
+              toggleLight(room);
+            }
+
+          }
+        );
+
+      }
+
+      setupSwitch(
+        el.swLiving,
+        "living"
+      );
+
+      setupSwitch(
+        el.swBedroom,
+        "bedroom"
+      );
+
+
+      /* ==========================================================
+         GATE CONTROL
+         ========================================================== */
+
+      el.gateBtn.addEventListener(
+        "click",
+        function () {
+
+          if (!isMqttConnected()) {
+
+            alert("MQTT is not connected.");
+
+            return;
+          }
+
+          var command =
+            state.gateOpen
+              ? "CLOSE"
+              : "OPEN";
+
+          publishCommand(
+            window.MQTT_CONFIG.topics.doorCommand,
+            command
+          );
+
+        }
+      );
+
+
+      /* ==========================================================
+         BUZZER
+         ========================================================== */
+
+      el.buzzerBtn.addEventListener(
+        "click",
+        function () {
+
+          publishCommand(
+            window.MQTT_CONFIG.topics.buzzerCommand,
+            "TEST"
+          );
+
+          el.buzzerBtn.classList.add(
+            "alarm-active"
+          );
+
+          el.buzzerBtn.textContent =
+            "Buzzing…";
+
+          setTimeout(
+            function () {
+
+              el.buzzerBtn.classList.remove(
+                "alarm-active"
+              );
+
+              el.buzzerBtn.textContent =
+                "Test buzzer";
+
+            },
+            900
+          );
+
+        }
+      );
+
+
+      /* ==========================================================
+         RENDER UI
+         ========================================================== */
+
+      function render() {
+
+        /* --------------------------------------------------------
+           Lighting
+           -------------------------------------------------------- */
+
+        var livingOn =
+          state.living === true;
+
+        var bedroomOn =
+          state.bedroom === true;
+
+
+        el.swLiving.classList.toggle(
+          "on",
+          livingOn
+        );
+
+        el.swLiving.setAttribute(
+          "aria-checked",
+          String(livingOn)
+        );
+
+
+        el.swBedroom.classList.toggle(
+          "on",
+          bedroomOn
+        );
+
+        el.swBedroom.setAttribute(
+          "aria-checked",
+          String(bedroomOn)
+        );
+
+
+        el.bulbLiving.classList.toggle(
+          "on",
+          livingOn
+        );
+
+        el.bulbLiving.classList.toggle(
+          "off",
+          !livingOn
+        );
+
+
+        el.bulbBedroom.classList.toggle(
+          "on",
+          bedroomOn
+        );
+
+        el.bulbBedroom.classList.toggle(
+          "off",
+          !bedroomOn
+        );
+
+
+        el.fillLiving.classList.toggle(
+          "lit",
+          livingOn
+        );
+
+        el.fillBedroom.classList.toggle(
+          "lit",
+          bedroomOn
+        );
+
+
+        el.readLiving.textContent =
+          "DHT · " +
+          (
+            state.temp === null
+              ? "—"
+              : state.temp.toFixed(1) + " °C"
+          ) +
+          " / " +
+          (
+            state.hum === null
+              ? "—"
+              : Math.round(state.hum) + " %"
+          );
+
+
+        el.readBedroom.textContent =
+          "—";
+
+
+        /* --------------------------------------------------------
+           Outside
+           -------------------------------------------------------- */
+
+        if (el.readOutside) {
+          el.readOutside.textContent =
+            "LDR · " +
+            (
+              state.ldr === null
+                ? "—"
+                : Math.round(state.ldr)
+            );
+        }
+
+
+        /* --------------------------------------------------------
+           Entrance / Motion
+           -------------------------------------------------------- */
+
+        el.readEntrance.textContent =
+          "PIR · " +
+          (
+            state.motion
+              ? "MOTION"
+              : "clear"
+          );
+
+
+        /* --------------------------------------------------------
+           Gate
+           -------------------------------------------------------- */
+
+        el.gateStatus.textContent =
+          state.gateOpen
+            ? "OPEN"
+            : "CLOSED";
+
+
+        el.gateStatus.classList.toggle(
+          "open",
+          state.gateOpen
+        );
+
+        el.gateStatus.classList.toggle(
+          "closed",
+          !state.gateOpen
+        );
+
+
+        el.doorLeaf.classList.toggle(
+          "open",
+          state.gateOpen
+        );
+
+        el.doorArc.classList.toggle(
+          "open",
+          state.gateOpen
+        );
+
+
+        el.gateBtn.textContent =
+          state.gateOpen
+            ? "Close gate"
+            : "Open gate";
+
+
+        /* --------------------------------------------------------
+           Environment
+           -------------------------------------------------------- */
+
+        el.tempVal.textContent =
+          state.temp === null
+            ? "—"
+            : state.temp.toFixed(1);
+
+
+        el.humVal.textContent =
+          state.hum === null
+            ? "—"
+            : Math.round(state.hum);
+
+
+        el.ldrVal.textContent =
+          state.ldr === null
+            ? "—"
+            : Math.round(state.ldr);
+
+
+        /*
+         * ESP8266 ADC is normally 0–1023.
+         * Higher LDR reading = more light.
+         *
+         * The bar intentionally represents darkness/low light
+         * based on the original design.
+         */
+
+        var pct = 0;
+
+        if (state.ldr !== null) {
+
+          pct =
+            100 -
+            (state.ldr / 1023) * 100;
+
+          pct =
+            Math.max(
+              0,
+              Math.min(100, pct)
+            );
+
+        }
+
+        el.ldrBar.style.width =
+          pct + "%";
+
+
+        /* --------------------------------------------------------
+           Motion
+           -------------------------------------------------------- */
+
+        el.motionStatus.classList.toggle(
+          "active",
+          state.motion
+        );
+
+        el.motionText.textContent =
+          state.motion
+            ? "Motion detected"
+            : "No motion";
+
+
+      }
+
+
+      /* ==========================================================
+         MOTION ANIMATION
+         ========================================================== */
+
+      function pulseMotion() {
+
+        el.ring.classList.remove(
+          "pulse"
+        );
+
+        /*
+         * Force browser reflow so the animation can restart.
+         */
+        void el.ring.offsetWidth;
+
+        el.ring.classList.add(
+          "pulse"
+        );
+
+      }
+
+
+      /* ==========================================================
+         FOOTER STATUS
+         ========================================================== */
+
+      function updateFooter() {
+
+        if (isMqttConnected()) {
+
+          el.footerNote.textContent =
+            "MQTT connected · live sensor data";
+
+        }
+
+        else {
+
+          el.footerNote.textContent =
+            "MQTT not connected · check broker, username and password";
+
+        }
+
+      }
+
+
+      /* ==========================================================
+         PARSE NUMERIC MQTT VALUE
+         ========================================================== */
+
+      function parseNumber(value) {
+
+        var number = Number(value);
+
+        return Number.isFinite(number)
+          ? number
+          : null;
+
+      }
+
+
+      /* ==========================================================
+         MQTT
+         ========================================================== */
+
+      function connectMqtt() {
+
+        if (
+          typeof mqtt === "undefined"
+        ) {
+
+          console.error(
+            "mqtt.js did not load."
+          );
+
+          el.dotMqtt.classList.add(
+            "warn"
+          );
+
+          updateFooter();
+
+          return;
+        }
+
+
+        try {
+
+          mqttClient = mqtt.connect(
+            window.MQTT_CONFIG.url,
+            {
+
+              username:
+                window.MQTT_CONFIG.username,
+
+              password:
+                window.MQTT_CONFIG.password,
+
+              clientId:
+                "SmartHouse_Web_" +
+                Math.random()
+                  .toString(16)
+                  .substring(2),
+
+              clean: true,
+
+              reconnectPeriod: 3000,
+
+              connectTimeout: 10000
+
+            }
+          );
+
+        }
+
+        catch (error) {
+
+          console.error(
+            "MQTT connection failed:",
+            error
+          );
+
+          el.dotMqtt.classList.add(
+            "warn"
+          );
+
+          updateFooter();
+
+          return;
+        }
+
+
+        /* --------------------------------------------------------
+           CONNECT
+           -------------------------------------------------------- */
+
+        mqttClient.on(
+          "connect",
+          function () {
+
+            console.log(
+              "[MQTT] Connected"
+            );
+
+            el.dotMqtt.classList.remove(
+              "warn"
+            );
+
+            updateFooter();
+
+
+            var t =
+              window.MQTT_CONFIG.topics;
+
+
+            var subscriptions = [
+
+              t.temperature,
+              t.humidity,
+
+              t.light1,
+              t.light2,
+
+              t.motion,
+              t.rain,
+
+              t.led1Status,
+              t.led2Status,
+
+              t.doorStatus,
+
+              t.rainProtectionStatus,
+              t.modeStatus
+
+            ];
+
+
+            mqttClient.subscribe(
+              subscriptions,
+              function (error) {
+
+                if (error) {
+
+                  console.error(
+                    "[MQTT] Subscribe error:",
+                    error
+                  );
+
+                }
+                else {
+
+                  console.log(
+                    "[MQTT] Subscribed to sensor/status topics"
+                  );
+
+                }
+
+              }
+            );
+
+          }
+        );
+
+
+        /* --------------------------------------------------------
+           RECONNECT
+           -------------------------------------------------------- */
+
+        mqttClient.on(
+          "reconnect",
+          function () {
+
+            console.log(
+              "[MQTT] Reconnecting…"
+            );
+
+            el.dotMqtt.classList.add(
+              "warn"
+            );
+
+            updateFooter();
+
+          }
+        );
+
+
+        /* --------------------------------------------------------
+           CLOSE
+           -------------------------------------------------------- */
+
+        mqttClient.on(
+          "close",
+          function () {
+
+            console.log(
+              "[MQTT] Connection closed"
+            );
+
+            el.dotMqtt.classList.add(
+              "warn"
+            );
+
+            updateFooter();
+
+          }
+        );
+
+
+        /* --------------------------------------------------------
+           ERROR
+           -------------------------------------------------------- */
+
+        mqttClient.on(
+          "error",
+          function (error) {
+
+            console.error(
+              "[MQTT] Error:",
+              error
+            );
+
+            el.dotMqtt.classList.add(
+              "warn"
+            );
+
+            updateFooter();
+
+          }
+        );
+
+
+        /* --------------------------------------------------------
+           MESSAGE
+           -------------------------------------------------------- */
+
+        mqttClient.on(
+          "message",
+          function (topic, payload) {
+
+            var msg =
+              payload.toString().trim();
+
+            var t =
+              window.MQTT_CONFIG.topics;
+
+
+            console.log(
+              "[MQTT]",
+              topic,
+              "=",
+              msg
+            );
+
+
+            /* ====================================================
+               TEMPERATURE
+               ==================================================== */
+
+            if (
+              topic === t.temperature
+            ) {
+
+              var temperature =
+                parseNumber(msg);
+
+              if (temperature !== null) {
+                state.temp =
+                  temperature;
+              }
+
+            }
+
+
+            /* ====================================================
+               HUMIDITY
+               ==================================================== */
+
+            else if (
+              topic === t.humidity
+            ) {
+
+              var humidity =
+                parseNumber(msg);
+
+              if (humidity !== null) {
+                state.hum =
+                  humidity;
+              }
+
+            }
+
+
+            /* ====================================================
+               LDR / LIGHT SENSOR
+               ==================================================== */
+
+            else if (
+              topic === t.light1
+            ) {
+
+              var light =
+                parseNumber(msg);
+
+              if (light !== null) {
+                state.ldr =
+                  light;
+              }
+
+            }
+
+
+            /* ====================================================
+               SECOND LIGHT SENSOR
+               ==================================================== */
+
+            else if (
+              topic === t.light2
+            ) {
+
+              console.log(
+                "[MQTT] Light #2:",
+                msg
+              );
+
+            }
+
+
+            /* ====================================================
+               MOTION
+               ==================================================== */
+
+            else if (
+              topic === t.motion
+            ) {
+
+              var isMotion =
+                msg.toUpperCase() ===
+                "DETECTED";
+
+
+              if (
+                isMotion &&
+                !state.motion
+              ) {
+
+                pulseMotion();
+
+              }
+
+
+              state.motion =
+                isMotion;
+
+            }
+
+
+            /* ====================================================
+               RAIN
+               ==================================================== */
+
+            else if (
+              topic === t.rain
+            ) {
+
+              var rainMessage =
+                msg.toUpperCase();
+
+
+              if (
+                rainMessage === "DETECTED"
+              ) {
+
+                state.rain = true;
+
+              }
+
+              else if (
+                rainMessage === "CLEAR" ||
+                rainMessage === "DRY"
+              ) {
+
+                state.rain = false;
+
+              }
+
+            }
+
+
+            /* ====================================================
+               CLOTHESLINE / SERVO 2 STATUS
+               ==================================================== */
+
+            else if (
+              topic === t.rainProtectionStatus
+            ) {
+
+              var clothesline =
+                msg.toUpperCase();
+
+              if (
+                clothesline === "INSIDE" ||
+                clothesline === "RETRACTED" ||
+                clothesline === "CLOSED"
+              ) {
+
+                state.clotheslineInside = true;
+
+              }
+
+              else if (
+                clothesline === "OUTSIDE" ||
+                clothesline === "EXTENDED" ||
+                clothesline === "OPEN"
+              ) {
+
+                state.clotheslineInside = false;
+
+              }
+
+            }
+
+
+            /* ====================================================
+               LED #1 STATUS
+               ==================================================== */
+
+            else if (
+              topic === t.led1Status
+            ) {
+
+              var led1 =
+                msg.toUpperCase();
+
+              if (
+                led1 === "ON"
+              ) {
+
+                state.living = true;
+
+              }
+
+              else if (
+                led1 === "OFF"
+              ) {
+
+                state.living = false;
+
+              }
+
+            }
+
+
+            /* ====================================================
+               LED #2 STATUS
+               ==================================================== */
+
+            else if (
+              topic === t.led2Status
+            ) {
+
+              var led2 =
+                msg.toUpperCase();
+
+              if (
+                led2 === "ON"
+              ) {
+
+                state.bedroom = true;
+
+              }
+
+              else if (
+                led2 === "OFF"
+              ) {
+
+                state.bedroom = false;
+
+              }
+
+            }
+
+
+            /* ====================================================
+               DOOR STATUS
+               ==================================================== */
+
+            else if (
+              topic === t.doorStatus
+            ) {
+
+              var door =
+                msg.toUpperCase();
+
+              if (
+                door === "OPEN"
+              ) {
+
+                state.gateOpen =
+                  true;
+
+              }
+
+              else if (
+                door === "CLOSED" ||
+                door === "CLOSE"
+              ) {
+
+                state.gateOpen =
+                  false;
+
+              }
+
+            }
+
+
+            /* ====================================================
+               UPDATE UI
+               ==================================================== */
+
+            render();
+
+          }
+        );
+
+      }
+
+
+      /* ==========================================================
+         INITIALIZE
+         ========================================================== */
+
+      render();
+
+      updateFooter();
+
+      connectMqtt();
+
+    })();
+  </script>
+
+
+  <!-- ============================================================
+       OPTIONAL FIREBASE
+       ============================================================ -->
+
+  <script type="module">
+
+    import {
+      initializeApp
+    } from
+      "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+    import {
+      getDatabase,
+      ref,
+      onValue
+    } from
+      "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+
+    var cfg =
+      window.FIREBASE_CONFIG;
+
+
+    /*
+     * Firebase is disabled by default.
+     */
+
+    if (
+      !cfg ||
+      cfg.enabled !== true
+    ) {
+
+      console.log(
+        "[Firebase] Disabled — using MQTT."
+      );
+
+      document
+        .getElementById("dot-firebase")
+        .classList.add("warn");
+
+    }
+
+    else if (
+      !cfg.apiKey ||
+      !cfg.databaseURL
+    ) {
+
+      console.warn(
+        "[Firebase] Enabled but configuration is incomplete."
+      );
+
+      document
+        .getElementById("dot-firebase")
+        .classList.add("warn");
+
+    }
+
+    else {
+
+      try {
+
+        var app =
+          initializeApp(cfg);
+
+        var database =
+          getDatabase(app);
+
+
+        document
+          .getElementById("dot-firebase")
+          .classList.remove("warn");
+
+
+        /*
+         * Firebase sensor fallback.
+         *
+         * MQTT remains the primary live source.
+         */
+
+        onValue(
+          ref(
+            database,
+            "SmartHouse/sensors"
+          ),
+
+          function (snapshot) {
+
+            var value =
+              snapshot.val() || {};
+
+
+            /*
+             * Only use Firebase when MQTT has not
+             * supplied a value yet.
+             */
+
+            if (
+              window.__smartHouseState
+            ) {
+
+              var state =
+                window.__smartHouseState;
+
+              var render =
+                window.__smartHouseRender;
+
+
+              if (
+                state.temp === null &&
+                typeof value.temperature ===
+                  "number"
+              ) {
+
+                state.temp =
+                  value.temperature;
+
+              }
+
+
+              if (
+                state.hum === null &&
+                typeof value.humidity ===
+                  "number"
+              ) {
+
+                state.hum =
+                  value.humidity;
+
+              }
+
+
+              if (
+                state.ldr === null &&
+                typeof value.light ===
+                  "number"
+              ) {
+
+                state.ldr =
+                  value.light;
+
+              }
+
+
+              if (
+                state.rain === null &&
+                typeof value.rain ===
+                  "boolean"
+              ) {
+
+                state.rain =
+                  value.rain;
+
+              }
+
+
+              if (
+                typeof render ===
+                  "function"
+              ) {
+
+                render();
+
+              }
+
+            }
+
+          }
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "[Firebase] Initialization failed:",
+          error
+        );
+
+        document
+          .getElementById("dot-firebase")
+          .classList.add("warn");
+
+      }
+
+    }
+
+  </script>
+
+</body>
+</html>
