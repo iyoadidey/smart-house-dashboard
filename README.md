@@ -1,1 +1,1 @@
-# Midterm-Project
+# smart-house-dashboard
