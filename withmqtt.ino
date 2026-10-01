@@ -6,8 +6,8 @@
 #include <Servo.h>
 
 // Wi-Fi
-const char* ssid = "Starlink";
-const char* wifiPassword = "Skybulok321";
+const char* ssid = "T.I.P.ian Student";
+const char* wifiPassword = "";
 
 // HiveMQ Cloud broker
 const char* mqttServer = "6ccecdc3f8c0410bb616be6f868c657d.s1.eu.hivemq.cloud";
@@ -55,7 +55,7 @@ BearSSL::WiFiClientSecure mqttClientTransport;
 BearSSL::WiFiClientSecure thingSpeakClient;
 PubSubClient mqttClient(mqttClientTransport);
 
-const int lightThreshold = 500;
+const int lightThreshold = 700;
 const int photo2DarkState = LOW;
 const unsigned long publishInterval = 5000;
 const unsigned long manualOverrideDuration = 10000;
